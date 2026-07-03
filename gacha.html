@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가챠 시뮬레이터 | 이수하 포트폴리오</title>
+    <meta name="description" content="이수하가 개발한 AI 게임 연계형 웹 아이템 가챠 시뮬레이터 데모 페이지입니다.">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Gacha Page Specific Custom Styles */
+        .gacha-container {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .gacha-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .gacha-panel, .stats-panel, .inventory-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .gacha-altar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 380px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Altar Summon Portal SVG Animation */
+        .portal-svg {
+            width: 200px;
+            height: 200px;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.5));
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .portal-svg:hover {
+            transform: scale(1.05);
+        }
+
+        .portal-svg.spinning {
+            animation: spinPortal 1.5s infinite linear, pulsePortal 0.5s infinite alternate;
+        }
+
+        @keyframes spinPortal {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulsePortal {
+            0% { filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.5)); }
+            100% { filter: drop-shadow(0 0 45px rgba(255, 8, 68, 0.8)); }
+        }
+
+        .gacha-buttons {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .gacha-btn {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: var(--font-heading);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+        }
+
+        .btn-summon-1 {
+            background: var(--primary-gradient);
+            color: #0b0f19;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-summon-10 {
+            background: var(--secondary-gradient);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(255, 8, 68, 0.3);
+        }
+
+        .gacha-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255,255,255,0.15);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-lbl {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+
+        /* Grade distribution list */
+        .rates-list {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .rate-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--grade-color, #ccc);
+        }
+
+        .rate-badge {
+            font-weight: 800;
+            padding: 0.1rem 0.5rem;
+            border-radius: 4px;
+            color: #0b0f19;
+            background: var(--grade-color, #ccc);
+        }
+
+        /* Grade color definitions */
+        .grade-sss { --grade-color: #ffd700; --glow-color: rgba(255, 215, 0, 0.6); }
+        .grade-ss { --grade-color: #ff0844; --glow-color: rgba(255, 8, 68, 0.6); }
+        .grade-s { --grade-color: #a855f7; --glow-color: rgba(168, 85, 247, 0.6); }
+        .grade-a { --grade-color: #eab308; --glow-color: rgba(234, 179, 8, 0.6); }
+        .grade-b { --grade-color: #3b82f6; --glow-color: rgba(59, 130, 246, 0.6); }
+        .grade-c { --grade-color: #10b981; --glow-color: rgba(16, 185, 129, 0.6); }
+        .grade-d { --grade-color: #94a3b8; --glow-color: rgba(148, 163, 184, 0.6); }
+        .grade-e { --grade-color: #b45309; --glow-color: rgba(180, 83, 9, 0.6); }
+
+        .grade-sss-text { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); font-weight: 800; }
+        .grade-ss-text { color: #ff0844; text-shadow: 0 0 10px rgba(255,8,68,0.5); font-weight: 800; }
+        .grade-s-text { color: #a855f7; text-shadow: 0 0 10px rgba(168,85,247,0.5); font-weight: 800; }
+        .grade-a-text { color: #eab308; font-weight: 700; }
+        .grade-b-text { color: #3b82f6; font-weight: 700; }
+        .grade-c-text { color: #10b981; font-weight: 700; }
+        .grade-d-text { color: #94a3b8; }
+        .grade-e-text { color: #b45309; }
+
+        /* Inventory style */
+        .inventory-panel {
+            grid-column: span 2;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .inventory-panel {
+                grid-column: span 1;
+            }
+        }
+
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .inv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 1.2rem;
+            min-height: 120px;
+        }
+
+        .item-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            position: relative;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--grade-color);
+            box-shadow: 0 8px 20px var(--glow-color);
+        }
+
+        .item-card-grade {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            background: var(--grade-color);
+            color: #0b0f19;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        .item-card-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 5px var(--glow-color));
+        }
+
+        .item-card-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--grade-color);
+        }
+
+        .item-card-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            margin-bottom: 0.2rem;
+        }
+
+        .item-card-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Summon Modal Overlay (For reveal animation) */
+        .summon-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 10, 18, 0.95);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .summon-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .reveal-container {
+            perspective: 1000px;
+            width: 320px;
+            height: 450px;
+            margin-bottom: 2rem;
+        }
+
+        .reveal-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .reveal-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            border: 2px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+        }
+
+        /* Card Back (Shown first, default look) */
+        .card-back {
+            background: linear-gradient(135deg, #111827 0%, #0b0f19 100%);
+            border-color: #00f2fe;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.3);
+        }
+
+        .card-back-symbol {
+            width: 120px;
+            height: 120px;
+            fill: #00f2fe;
+            animation: pulseSymbol 2s infinite alternate;
+        }
+
+        @keyframes pulseSymbol {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(0, 242, 254, 0.4)); }
+            100% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.7)); }
+        }
+
+        /* Card Front (Revealed item) */
+        .card-front {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            transform: rotateY(180deg);
+            border-color: var(--grade-color);
+            box-shadow: 0 0 35px var(--glow-color);
+        }
+
+        /* Cosmic background for SSS */
+        .card-front.sss-cosmic {
+            background: radial-gradient(circle at center, #111827 0%, #020617 100%), 
+                        repeating-conic-gradient(from 0deg, rgba(255,215,0,0.1) 0deg 30deg, transparent 30deg 60deg);
+            animation: sssGlory 3s infinite linear;
+        }
+
+        @keyframes sssGlory {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        .reveal-grade-badge {
+            font-size: 1.1rem;
+            font-weight: 900;
+            background: var(--grade-color);
+            color: #0b0f19;
+            padding: 0.3rem 1.2rem;
+            border-radius: 6px;
+            box-shadow: 0 0 10px var(--glow-color);
+            margin-bottom: 1.5rem;
+            font-family: var(--font-heading);
+        }
+
+        .reveal-icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 15px var(--glow-color));
+            animation: floatIcon 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .reveal-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--grade-color);
+        }
+
+        .reveal-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-heading);
+        }
+
+        .reveal-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .close-reveal-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.8rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: none; /* Only show after card is flipped */
+        }
+
+        .close-reveal-btn:hover {
+            background: white;
+            color: #0b0f19;
+            transform: scale(1.05);
+        }
+
+        /* 10 Pull Reveal Screen */
+        .reveal-multi-container {
+            display: none;
+            width: 90%;
+            max-width: 1000px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .reveal-multi-container {
+                grid-template-columns: repeat(2, 1fr);
+                max-height: 60vh;
+                overflow-y: auto;
+                padding-right: 0.5rem;
+            }
+        }
+
+        /* Gacha Cheat Panel (Visible only when Admin active) */
+        .gacha-cheat-panel {
+            display: none;
+            margin-top: 1.5rem;
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px dashed rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        body.admin-active .gacha-cheat-panel {
+            display: block;
+        }
+
+        .cheat-title {
+            color: #ef4444;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .cheat-select {
+            width: 100%;
+            background: rgba(11, 15, 25, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f8fafc;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .cheat-select:focus {
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Mode Banner -->
+    <div id="adminBanner" class="admin-banner">
+        <span>🔒 관리자 모드가 활성화되어 있습니다.</span>
+        <button id="adminBgPanelToggleBtn" class="admin-btn">배경 설정</button>
+        <button id="adminLogoutBtn">로그아웃</button>
+    </div>
+
+    <!-- Floating Admin Background Panel -->
+    <div id="adminBgPanel" class="admin-bg-panel">
+        <h4>🎨 배경화면 설정</h4>
+        
+        <div class="panel-section">
+            <h5>1. 이미지 업로드</h5>
+            <button id="adminBgUploadBtn" class="admin-btn" style="width: 100%; margin-bottom: 0.5rem;">이미지 선택</button>
+            <input type="file" id="adminBgInput" accept="image/*" style="display: none;">
+        </div>
+        
+        <div class="panel-section">
+            <h5>2. 단색 설정 (RGB)</h5>
+            <div class="rgb-control">
+                <label>R: <span id="rVal">11</span></label>
+                <input type="range" id="rRange" min="0" max="255" value="11">
+            </div>
+            <div class="rgb-control">
+                <label>G: <span id="gVal">15</span></label>
+                <input type="range" id="gRange" min="0" max="255" value="15">
+            </div>
+            <div class="rgb-control">
+                <label>B: <span id="bVal">25</span></label>
+                <input type="range" id="bRange" min="0" max="255" value="25">
+            </div>
+            <div class="color-preview-row">
+                <input type="color" id="colorPicker" value="#0b0f19">
+                <span style="font-size:0.8rem; color:var(--text-secondary);">색상 선택기</span>
+            </div>
+        </div>
+        
+        <button id="adminBgResetBtn" class="admin-btn reset-btn" style="width: 100%; margin-top: 1rem; display: none;">설정 초기화</button>
+    </div>
+
+    <!-- Header/Nav -->
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                SUHA LEE <span class="logo-dot"></span>
+            </a>
+            <button class="menu-toggle" id="menuToggle" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="mainNav">
+                <ul>
+                    <li><a href="index.html">홈</a></li>
+                    <li><a href="profile.html">간단 인적사항</a></li>
+                    <li><a href="activities.html">활동사항</a></li>
+                    <li><a href="certifications.html">자격사항</a></li>
+                    <li><a href="gacha.html" class="active">가챠 시뮬레이터</a></li>
+                </ul>
+            </nav>
+            <div class="nav-controls">
+                <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="테마 변경">
+                    <svg class="sun-icon" viewBox="0 0 24 24">
+                        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41zm-12.37 12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41z"/>
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24">
+                        <path d="M12.3 22c5.07 0 9.2-3.79 9.7-8.68.13-1.27-1.12-2.19-2.22-1.57C17.7 12.98 15.42 13 14 13c-5.52 0-10-4.48-10-10 0-1.42.02-3.7.75-5.78.62-1.1-.3-2.35-1.57-2.22C3.79 3.8 2 7.93 2 13c0 5.52 4.48 10 10 10z"/>
+                    </svg>
+                </button>
+                <button id="adminLoginBtn" class="admin-login-btn" aria-label="관리자 로그인">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="section-title-area fade-in-up">
+            <span class="section-subtitle">Game Development Portfolio</span>
+            <h2 class="section-title">가챠 시뮬레이터</h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem; max-width: 700px;">
+                웹 프론트엔드 환경에서 동작하는 RPG 아이템 소환 시뮬레이터입니다. 각 등급별(E~SSS) 확률과 아이템 목록을 제어하며, Web Audio API를 활용해 오디오 피드백을 동적으로 합성합니다.
+            </p>
+        </div>
+
+        <div class="gacha-container fade-in-up delay-1">
+            <!-- Left Panel: Summoning altar -->
+            <div class="gacha-panel">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">🔮 아이템 소환 제단</h3>
+                <div class="gacha-altar" id="gachaAltar">
+                    <!-- Portal SVG -->
+                    <svg class="portal-svg" id="portalSvg" viewBox="0 0 200 200">
+                        <defs>
+                            <radialGradient id="portalGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.8"/>
+                                <stop offset="60%" stop-color="#7c3aed" stop-opacity="0.5"/>
+                                <stop offset="100%" stop-color="#0b0f19" stop-opacity="0"/>
+                            </radialGradient>
+                        </defs>
+                        <!-- Concentric circles for animation -->
+                        <circle cx="100" cy="100" r="85" fill="none" stroke="url(#portalGrad)" stroke-width="4" stroke-dasharray="10 15 20"/>
+                        <circle cx="100" cy="100" r="70" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 5" opacity="0.7"/>
+                        <circle cx="100" cy="100" r="50" fill="none" stroke="#00f2fe" stroke-width="1.5" stroke-dasharray="15 8" opacity="0.6"/>
+                        <!-- Inner glowing core -->
+                        <circle cx="100" cy="100" r="30" fill="url(#portalGrad)"/>
+                        <!-- Mysterious runes / markings -->
+                        <path d="M100 20 L95 40 L105 40 Z" fill="#00f2fe" opacity="0.8"/>
+                        <path d="M100 180 L95 160 L105 160 Z" fill="#00f2fe" opacity="0.8"/>
+                        <path d="M20 100 L40 95 L40 105 Z" fill="#00f2fe" opacity="0.8"/>
+                        <path d="M180 100 L160 95 L160 105 Z" fill="#00f2fe" opacity="0.8"/>
+                    </svg>
+                    <p style="margin-top: 1.5rem; font-size: 0.95rem; color: var(--text-secondary); text-align: center;" id="altarStatus">
+                        소환 구체를 누르거나 아래 버튼을 클릭하세요!
+                    </p>
+                </div>
+
+                <div class="gacha-buttons">
+                    <button class="gacha-btn btn-summon-1" id="btnSummon1">
+                        ✨ 1회 소환
+                    </button>
+                    <button class="gacha-btn btn-summon-10" id="btnSummon10">
+                        ⚡ 10회 소환
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Statistics & Rates -->
+            <div class="stats-panel">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 1rem;">📊 소환 정보 & 통계</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-val" id="totalPullsVal">0</div>
+                        <div class="stat-lbl">누적 소환 횟수</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val" id="highestGradeVal">-</div>
+                        <div class="stat-lbl">최고 획득 등급</div>
+                    </div>
+                </div>
+
+                <!-- Admin Cheat Panel (only shows when admin-active on body) -->
+                <div class="gacha-cheat-panel" id="gachaCheatPanel">
+                    <div class="cheat-title">
+                        ⚠️ [관리자 권한] 소환 확률 조작
+                    </div>
+                    <label style="font-size: 0.8rem; color: #f8fafc; margin-bottom: 0.3rem; display: block;">다음 소환 등급 확정:</label>
+                    <select class="cheat-select" id="cheatSelect">
+                        <option value="none">-- 조작 없음 (기본 확률) --</option>
+                        <option value="SSS">★ SSS 등급 확정 (0.2% -> 100%)</option>
+                        <option value="SS">★ SS 등급 확정 (0.8% -> 100%)</option>
+                        <option value="S">★ S 등급 확정 (3.0% -> 100%)</option>
+                        <option value="A">A 등급 확정</option>
+                    </select>
+                </div>
+
+                <div class="rates-list" id="ratesList">
+                    <!-- Grade rate rows will be inserted here dynamically -->
+                </div>
+            </div>
+
+            <!-- Inventory Panel -->
+            <div class="inventory-panel">
+                <div class="inv-header">
+                    <h3 style="font-family: var(--font-heading);">🎒 나의 인벤토리</h3>
+                    <button class="btn btn-secondary" id="btnClearInventory" style="padding: 0.4rem 1rem; font-size: 0.85rem;">인벤토리 초기화</button>
+                </div>
+                <div class="inv-grid" id="inventoryGrid">
+                    <!-- Inventory items will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p class="footer-copy">© 2026 이수하. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="profile.html">인적사항</a>
+                <a href="activities.html">활동사항</a>
+                <a href="certifications.html">자격사항</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Summon Result Overlay (1 Card Flip Reveal) -->
+    <div class="summon-overlay" id="summonOverlay">
+        <div class="reveal-container">
+            <div class="reveal-card" id="revealCard">
+                <!-- Card Back -->
+                <div class="card-back">
+                    <svg class="card-back-symbol" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#00f2fe" stroke-width="2"/>
+                        <polygon points="50,20 60,40 80,45 65,60 70,80 50,70 30,80 35,60 20,45 40,40" fill="#00f2fe"/>
+                    </svg>
+                    <p style="color: #00f2fe; margin-top: 1.5rem; font-weight: 700; letter-spacing: 2px;">카드를 클릭해 확인</p>
+                </div>
+                <!-- Card Front (Populated by JS) -->
+                <div class="card-front" id="cardFront">
+                    <!-- Content injected by JS -->
+                </div>
+            </div>
+        </div>
+        <button class="close-reveal-btn" id="closeRevealBtn">소환 완료</button>
+    </div>
+
+    <!-- Summon Result Overlay (10 Cards grid) -->
+    <div class="summon-overlay" id="summonMultiOverlay" style="padding: 2rem;">
+        <h2 style="font-family: var(--font-heading); color: white; margin-bottom: 2rem; text-shadow: 0 0 10px rgba(255,255,255,0.3);">⚡ 10회 소환 결과</h2>
+        
+        <div class="reveal-multi-container" id="revealMultiContainer">
+            <!-- 10 Item cards will be injected here -->
+        </div>
+        
+        <button class="close-reveal-btn" id="closeMultiRevealBtn" style="display: block;">소환 완료</button>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal" aria-label="닫기">&times;</button>
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                    </svg>
+                </div>
+                <h3>관리자 로그인</h3>
+                <p>관리자 모드 활성화를 위해 비밀번호를 입력해주세요.</p>
+            </div>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminPassword">비밀번호</label>
+                    <input type="password" id="adminPassword" placeholder="비밀번호를 입력하세요 (데모: admin123)" required>
+                </div>
+                <div id="loginError" class="login-error-msg">비밀번호가 올바르지 않습니다.</div>
+                <button type="submit" class="btn btn-primary w-100">로그인</button>
+            </form>
+            <div id="loginSuccess" class="login-success-msg">
+                <div class="success-icon">✓</div>
+                <h4>로그인 성공!</h4>
+                <p>관리자 세션이 활성화되었습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // ==========================================
+        // Gacha Simulator Script
+        // ==========================================
+
+        // 1. Grade definitions & odds
+        const GRADES = {
+            E:   { id: 'E',   name: 'Common',    odds: 0.400, color: '#b45309', label: 'E등급' },
+            D:   { id: 'D',   name: 'Uncommon',  odds: 0.250, color: '#94a3b8', label: 'D등급' },
+            C:   { id: 'C',   name: 'Rare',      odds: 0.150, color: '#10b981', label: 'C등급' },
+            B:   { id: 'B',   name: 'Epic',      odds: 0.100, color: '#3b82f6', label: 'B등급' },
+            A:   { id: 'A',   name: 'Legendary', odds: 0.060, color: '#eab308', label: 'A등급' },
+            S:   { id: 'S',   name: 'Mythic',    odds: 0.030, color: '#a855f7', label: 'S등급' },
+            SS:  { id: 'SS',  name: 'Demigod',   odds: 0.008, color: '#ff0844', label: 'SS등급' },
+            SSS: { id: 'SSS', name: 'Godly',     odds: 0.002, color: '#ffd700', label: 'SSS등급' }
+        };
+
+        // 2. Item Pools (SVGs designed inline)
+        // SVGs for weapon types
+        const SVG_PATH = {
+            sword: `<path d="M70,25 L75,30 L45,60 L40,58 L37,55 L35,50 L40,45 Z M38,57 L33,62 L30,60 L25,65 L27,67 L22,72 L20,70 L15,75 L18,78 L13,83 L17,87 L22,83 L25,86 L30,81 L28,79 L33,74 L35,76 L40,71 Z"/>`,
+            shield: `<path d="M20,20 C40,20 60,15 80,20 C80,45 75,70 50,85 C25,70 20,45 20,20 Z M50,25 L43,45 L62,33 L38,33 L57,45 Z"/>`,
+            staff: `<path d="M75,15 A10,10 0 1 0 95,35 A10,10 0 1 0 75,15 Z M20,80 L75,25 L80,30 L25,85 Z M78,22 C78,22 82,15 88,20 C94,25 87,30 87,30 Z"/>`,
+            ring: `<circle cx="50" cy="50" r="30" fill="none" stroke-width="8"/>
+                   <circle cx="50" cy="20" r="8" fill="white"/>`,
+            potion: `<path d="M40,20 L60,20 L60,30 L75,45 C80,55 80,75 70,85 C60,95 40,95 30,85 C20,75 20,55 25,45 L40,30 Z M43,30 L57,30 M30,60 C40,65 60,65 70,60 C68,75 32,75 30,60 Z"/>`,
+            crown: `<path d="M15,80 L25,40 L40,60 L50,30 L60,60 L75,40 L85,80 Z M15,80 L85,80 L85,85 L15,85 Z"/>`,
+            core: `<circle cx="50" cy="50" r="15"/>
+                   <path d="M50,10 L50,90 M10,50 L90,50 M25,25 L75,75 M25,75 L75,25" fill="none" stroke-width="4"/>`
+        };
+
+        const ITEM_POOLS = {
+            E: [
+                { name: '낡은 철검', type: 'sword', desc: '녹이 슬어 제 화력을 내지 못하는 낡은 검입니다.' },
+                { name: '금이 간 목패', type: 'shield', desc: '쉽게 부서질 것 같은 허술한 나무 방패입니다.' },
+                { name: '닳은 가죽 장화', type: 'potion', desc: '뒤축이 다 닳아 삐걱거리는 가죽 신발입니다.' },
+                { name: '찢어진 주문서', type: 'staff', desc: '마력이 거의 느껴지지 않는 찢어진 고대 종이 조각입니다.' }
+            ],
+            D: [
+                { name: '청동 단검', type: 'sword', desc: '초보 모험가들이 흔히 사용하는 무난한 청동 단검입니다.' },
+                { name: '철제 징 박힌 가죽 방패', type: 'shield', desc: '어느 정도의 충격은 받아낼 수 있게 보강된 가죽 방패입니다.' },
+                { name: '하급 체력 물약', type: 'potion', desc: '상처를 아주 살짝 아물게 해 주는 붉은 액체가 담긴 물약입니다.' },
+                { name: '무광 철반지', type: 'ring', desc: '아무런 장식이 없어 수수한 평범한 철 반지입니다.' }
+            ],
+            C: [
+                { name: '강철 장검', type: 'sword', desc: '훈련된 경비병들이 즐겨 사용하는 예리하고 튼튼한 강철 장검입니다.' },
+                { name: '은 도금 반지', type: 'ring', desc: '표면에 은을 입혀 약한 광채를 내는 패션용 은반지입니다.' },
+                { name: '마력 회복 물약', type: 'potion', desc: '소량의 정신력을 즉시 회복시켜 주는 푸른 마력 물약입니다.' },
+                { name: '경량 쇠사슬 갑옷', type: 'shield', desc: '움직임이 편하도록 가볍게 짜인 쇠사슬 갑옷입니다.' }
+            ],
+            B: [
+                { name: '화염의 지팡이', type: 'staff', desc: '하급 화염구를 투사할 수 있는 마법석이 박힌 나무 지팡이입니다.' },
+                { name: '기사의 강철 방패', type: 'shield', desc: '기사의 문양이 새겨진 단단하고 신뢰성 높은 장식용 방패입니다.' },
+                { name: '화려한 가죽 투구', type: 'crown', desc: '깃털로 화려하게 장식되어 멋을 낸 기사용 가죽 투구입니다.' },
+                { name: '신속의 가죽 장화', type: 'potion', desc: '바람의 기운이 미미하게 깃들어 발걸음을 가볍게 해 줍니다.' }
+            ],
+            A: [
+                { name: '모조 성검', type: 'sword', desc: '과거 유명했던 성검의 외형을 본떠 정교하게 재조해 낸 검입니다.' },
+                { name: '용의 비늘 방패', type: 'shield', desc: '약한 용 비늘이 덧대어 강한 마법 저항력을 지닌 튼튼한 방패입니다.' },
+                { name: '최상급 엘릭서', type: 'potion', desc: '몸을 회복시키고 잠재적 활력을 돋워 주는 귀중한 약물입니다.' },
+                { name: '미스릴 반지', type: 'ring', desc: '희귀 광물 미스릴로 제작되어 고유한 푸른빛을 자아내는 반지입니다.' }
+            ],
+            S: [
+                { name: '드래곤 슬레이어', type: 'sword', desc: '거대한 몬스터조차 단숨에 베어 넘길 수 있도록 마법 부여가 완료된 대검입니다.' },
+                { name: '이지스의 방패', type: 'shield', desc: '신성한 광채로 적을 눈부시게 만들고 어떠한 투사체든 튕겨내는 전설의 방패입니다.' },
+                { name: '대현자의 마법 로브', type: 'crown', desc: '마력 제어 및 신속 영창 능력을 획득할 수 있는 현자의 상징적인 의복입니다.' },
+                { name: '불사조의 불씨 반지', type: 'ring', desc: '착용자가 치명적인 피해를 입었을 때 불꽃막으로 한 번 보호해 주는 신비한 반지입니다.' }
+            ],
+            SS: [
+                { name: '천공의 눈물 검', type: 'sword', desc: '우주에서 떨어진 운철을 제련하여 만든, 하늘의 별빛을 뿜는 최고위 성검입니다.' },
+                { name: '신성한 수호 방패', type: 'shield', desc: '빛의 가호를 받아 절대 뚫리지 않는 기적을 동반하는 전설의 대형 방패입니다.' },
+                { name: '크로노스의 모래시계', type: 'core', desc: '시간의 법칙을 일시적으로 왜곡하여 쿨타임을 조절할 수 있다고 전해지는 골동품입니다.' },
+                { name: '대천사의 깃털 비상 장화', type: 'potion', desc: '바람을 차고 하늘을 미끄러지듯 이동할 수 있게 설계된 순백의 깃털 신발입니다.' }
+            ],
+            SSS: [
+                { name: '반중력 도어 코어', type: 'core', desc: '물리 엔진을 무시하고 중력을 왜곡하여 무한한 궤도를 생성하는 기적의 중력 원소 핵입니다.' },
+                { name: '세계수의 가지 지팡이', type: 'staff', desc: '세계수의 뿌리에서 자라나 무한한 생명 마력 원천과 교감할 수 있게 해 주는 자연 신성 유물입니다.' },
+                { name: '창조주의 광휘 왕관', type: 'crown', desc: '존재하는 것만으로 차원의 법칙을 갱신하는, 태초의 신들이 머리에 얹었던 왕관입니다.' },
+                { name: '우주의 무한 건틀릿', type: 'ring', desc: '우주 전체의 성운 에너지를 한 손에 압축하여 통제할 수 있는 최강의 우주 파편 장비입니다.' }
+            ]
+        };
+
+        // 3. Web Audio API Synth logic for premium game-like sound effects
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+                
+                if (type === 'click') {
+                    // Quick high-tech click sound
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } 
+                else if (type === 'spin') {
+                    // Rising sci-fi whoosh
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, now);
+                    osc.frequency.linearRampToValueAtTime(1200, now + 1.2);
+                    
+                    // Lowpass filter for warm tone
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(300, now);
+                    filter.frequency.exponentialRampToValueAtTime(3000, now + 1.2);
+                    
+                    osc.disconnect(gain);
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.12, now + 0.8);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+                    osc.start(now);
+                    osc.stop(now + 1.3);
+                }
+                else if (type === 'reveal_normal') {
+                    // Standard light chime
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.15); // E5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+                else if (type === 'reveal_rare') {
+                    // Harmonic chord
+                    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C Major chord
+                    freqs.forEach((f, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(f, now + (i * 0.05));
+                        gain.gain.setValueAtTime(0.08, now + (i * 0.05));
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                        osc.start(now);
+                        osc.stop(now + 0.8);
+                    });
+                }
+                else if (type === 'reveal_legendary') {
+                    // Majestic glissando & vibrato
+                    const duration = 1.8;
+                    const osc = audioCtx.createOscillator();
+                    const lfo = audioCtx.createOscillator();
+                    const lfoGain = audioCtx.createGain();
+                    const gain = audioCtx.createGain();
+                    
+                    lfo.frequency.value = 8; // 8Hz vibrato
+                    lfoGain.gain.value = 15; // frequency range
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(osc.frequency);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(261.63, now); // C4
+                    osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.5); // C6
+                    
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(200, now);
+                    filter.frequency.exponentialRampToValueAtTime(4000, now + 0.6);
+                    
+                    osc.disconnect(gain);
+                    osc.connect(filter);
+                    filter.connect(gain);
+
+                    gain.gain.setValueAtTime(0.01, now);
+                    gain.gain.linearRampToValueAtTime(0.18, now + 0.4);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                    
+                    lfo.start(now);
+                    osc.start(now);
+                    lfo.stop(now + duration);
+                    osc.stop(now + duration);
+                }
+            } catch (err) {
+                console.error("Audio synth error:", err);
+            }
+        }
+
+        // 4. State Management
+        let inventory = JSON.parse(localStorage.getItem('gachaInventory')) || {};
+        let stats = JSON.parse(localStorage.getItem('gachaStats')) || {
+            totalPulls: 0,
+            highestGrade: '',
+            counts: { E:0, D:0, C:0, B:0, A:0, S:0, SS:0, SSS:0 }
+        };
+
+        // 5. DOM Elements
+        const portalSvg = document.getElementById('portalSvg');
+        const btnSummon1 = document.getElementById('btnSummon1');
+        const btnSummon10 = document.getElementById('btnSummon10');
+        const altarStatus = document.getElementById('altarStatus');
+        const totalPullsVal = document.getElementById('totalPullsVal');
+        const highestGradeVal = document.getElementById('highestGradeVal');
+        const ratesList = document.getElementById('ratesList');
+        const inventoryGrid = document.getElementById('inventoryGrid');
+        const btnClearInventory = document.getElementById('btnClearInventory');
+        const cheatSelect = document.getElementById('cheatSelect');
+
+        // Reveal Overlay Elements
+        const summonOverlay = document.getElementById('summonOverlay');
+        const revealCard = document.getElementById('revealCard');
+        const cardFront = document.getElementById('cardFront');
+        const closeRevealBtn = document.getElementById('closeRevealBtn');
+
+        // Multi Reveal Elements
+        const summonMultiOverlay = document.getElementById('summonMultiOverlay');
+        const revealMultiContainer = document.getElementById('revealMultiContainer');
+        const closeMultiRevealBtn = document.getElementById('closeMultiRevealBtn');
+
+        // 6. Functions
+
+        // Helper to roll random grade
+        function rollGrade() {
+            // Check admin cheat mode override
+            if (localStorage.getItem('adminMode') === 'true') {
+                const cheatValue = cheatSelect.value;
+                if (cheatValue && cheatValue !== 'none') {
+                    // Reset cheat selection after roll so it isn't locked forever, but easy to repeat
+                    const rolled = cheatValue;
+                    cheatSelect.value = 'none';
+                    return rolled;
+                }
+            }
+
+            const rand = Math.random();
+            let cumulative = 0;
+            
+            // Grades order from SSS downwards
+            const order = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D', 'E'];
+            for (let grade of order) {
+                cumulative += GRADES[grade].odds;
+                if (rand <= cumulative) {
+                    return grade;
+                }
+            }
+            return 'E';
+        }
+
+        // Draw an SVG for an item based on its type
+        function getItemSvg(type, color) {
+            const innerPath = SVG_PATH[type] || SVG_PATH.sword;
+            return `
+                <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+                    <circle cx="50" cy="50" r="45" fill="rgba(0,0,0,0.4)" stroke="${color}" stroke-width="2"/>
+                    <g fill="${color}">${innerPath}</g>
+                </svg>
+            `;
+        }
+
+        // Perform a single roll and return the item object
+        function rollItem() {
+            const grade = rollGrade();
+            const pool = ITEM_POOLS[grade];
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            const template = pool[randomIndex];
+            
+            return {
+                name: template.name,
+                type: template.type,
+                desc: template.desc,
+                grade: grade
+            };
+        }
+
+        // Save inventory and stats to local storage and update UI
+        function saveState() {
+            localStorage.setItem('gachaInventory', JSON.stringify(inventory));
+            localStorage.setItem('gachaStats', JSON.stringify(stats));
+            updateUI();
+        }
+
+        // Update Statistics & Rates list
+        function updateUI() {
+            totalPullsVal.textContent = stats.totalPulls;
+            highestGradeVal.textContent = stats.highestGrade ? `${stats.highestGrade} (${GRADES[stats.highestGrade].name})` : '-';
+            
+            // Set color on highest grade text
+            if (stats.highestGrade) {
+                highestGradeVal.className = `stat-val grade-${stats.highestGrade.toLowerCase()}-text`;
+            } else {
+                highestGradeVal.className = `stat-val`;
+            }
+
+            // Render Rates & Pull counts
+            ratesList.innerHTML = '';
+            const order = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D', 'E'];
+            order.forEach(gradeKey => {
+                const g = GRADES[gradeKey];
+                const count = stats.counts[gradeKey] || 0;
+                const percentage = stats.totalPulls > 0 ? ((count / stats.totalPulls) * 100).toFixed(1) : '0.0';
+                
+                const row = document.createElement('div');
+                row.className = `rate-row grade-${gradeKey.toLowerCase()}`;
+                row.innerHTML = `
+                    <span class="rate-badge">${g.label}</span>
+                    <span style="color: var(--text-secondary); font-size: 0.8rem;">(확률: ${(g.odds * 100).toFixed(1)}%)</span>
+                    <span style="font-weight:600;">${count}회 <span style="font-size:0.8rem; color:var(--text-muted);">(${percentage}%)</span></span>
+                `;
+                ratesList.appendChild(row);
+            });
+
+            // Render Inventory
+            inventoryGrid.innerHTML = '';
+            
+            // Sort inventory: highest grade first
+            const invItems = Object.values(inventory).sort((a, b) => {
+                const gradeOrder = { E:0, D:1, C:2, B:3, A:4, S:5, SS:6, SSS:7 };
+                return gradeOrder[b.item.grade] - gradeOrder[a.item.grade] || a.item.name.localeCompare(b.item.name);
+            });
+
+            if (invItems.length === 0) {
+                inventoryGrid.innerHTML = `
+                    <div style="grid-column: span 10; text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.95rem;">
+                        획득한 아이템이 없습니다. 소환을 눌러 제단에 기원하세요!
+                    </div>
+                `;
+                return;
+            }
+
+            invItems.forEach(entry => {
+                const item = entry.item;
+                const count = entry.count;
+                const g = GRADES[item.grade];
+                
+                const card = document.createElement('div');
+                card.className = `item-card grade-${item.grade.toLowerCase()}`;
+                card.setAttribute('title', item.desc);
+                card.innerHTML = `
+                    <span class="item-card-grade">${item.grade}</span>
+                    <div class="item-card-icon">
+                        ${getItemSvg(item.type, g.color)}
+                    </div>
+                    <div class="item-card-name">${item.name}</div>
+                    <div class="item-card-count">보유: ${count}개</div>
+                `;
+                inventoryGrid.appendChild(card);
+            });
+        }
+
+        // Add item to inventory state
+        function addToInventory(item) {
+            const key = `${item.grade}_${item.name}`;
+            if (inventory[key]) {
+                inventory[key].count++;
+            } else {
+                inventory[key] = {
+                    item: item,
+                    count: 1
+                };
+            }
+
+            // Update stats
+            stats.totalPulls++;
+            stats.counts[item.grade] = (stats.counts[item.grade] || 0) + 1;
+            
+            // Update highest grade reached
+            const gradeRanking = { E:1, D:2, C:3, B:4, A:5, S:6, SS:7, SSS:8 };
+            if (!stats.highestGrade || gradeRanking[item.grade] > gradeRanking[stats.highestGrade]) {
+                stats.highestGrade = item.grade;
+            }
+        }
+
+        // Single Summon Functionality
+        function triggerSingleSummon() {
+            playSound('click');
+            playSound('spin');
+
+            // Block buttons
+            btnSummon1.disabled = true;
+            btnSummon10.disabled = true;
+            portalSvg.classList.add('spinning');
+            altarStatus.textContent = '제단의 마력이 고동치는 중...';
+
+            setTimeout(() => {
+                const item = rollItem();
+                addToInventory(item);
+                saveState();
+
+                // Stop portal spinning
+                portalSvg.classList.remove('spinning');
+                altarStatus.textContent = '소환 완수! 신비한 존재가 소환되었습니다.';
+
+                // Show Reveal overlay
+                cardFront.className = 'card-front';
+                if (item.grade === 'SSS') {
+                    cardFront.classList.add('sss-cosmic');
+                }
+                cardFront.classList.add(`grade-${item.grade.toLowerCase()}`);
+                
+                const g = GRADES[item.grade];
+                cardFront.innerHTML = `
+                    <span class="reveal-grade-badge">${g.label} [${g.name}]</span>
+                    <div class="reveal-icon">
+                        ${getItemSvg(item.type, g.color)}
+                    </div>
+                    <div class="reveal-name">${item.name}</div>
+                    <div class="reveal-desc">${item.desc}</div>
+                `;
+
+                // Set card front custom CSS properties
+                cardFront.style.setProperty('--grade-color', g.color);
+                cardFront.style.setProperty('--glow-color', `rgba(${hexToRgb(g.color)}, 0.6)`);
+
+                revealCard.classList.remove('flipped');
+                closeRevealBtn.style.display = 'none';
+                summonOverlay.classList.add('open');
+
+                // Play grade audio reveal
+                setTimeout(() => {
+                    const gradeSounds = { E:'reveal_normal', D:'reveal_normal', C:'reveal_rare', B:'reveal_rare', A:'reveal_legendary', S:'reveal_legendary', SS:'reveal_legendary', SSS:'reveal_legendary' };
+                    playSound(gradeSounds[item.grade]);
+                }, 100);
+
+                // Enable button unlock
+                btnSummon1.disabled = false;
+                btnSummon10.disabled = false;
+            }, 1500);
+        }
+
+        // Multi Summon Functionality (10 Pulls)
+        function triggerMultiSummon() {
+            playSound('click');
+            playSound('spin');
+
+            btnSummon1.disabled = true;
+            btnSummon10.disabled = true;
+            portalSvg.classList.add('spinning');
+            altarStatus.textContent = '제단의 고대 마법진이 무수히 개방되는 중...';
+
+            setTimeout(() => {
+                const pulledItems = [];
+                for(let i = 0; i < 10; i++) {
+                    const item = rollItem();
+                    addToInventory(item);
+                    pulledItems.push(item);
+                }
+                saveState();
+
+                portalSvg.classList.remove('spinning');
+                altarStatus.textContent = '소환이 완전히 마무리되었습니다!';
+
+                // Setup multi reveal grid
+                revealMultiContainer.innerHTML = '';
+                revealMultiContainer.style.display = 'grid';
+
+                let highestPushedGrade = 'E';
+                const gradeRanking = { E:1, D:2, C:3, B:4, A:5, S:6, SS:7, SSS:8 };
+
+                pulledItems.forEach((item, index) => {
+                    if (gradeRanking[item.grade] > gradeRanking[highestPushedGrade]) {
+                        highestPushedGrade = item.grade;
+                    }
+                    const g = GRADES[item.grade];
+                    
+                    const mCard = document.createElement('div');
+                    mCard.className = `item-card grade-${item.grade.toLowerCase()}`;
+                    mCard.style.opacity = '0';
+                    mCard.style.transform = 'scale(0.8)';
+                    mCard.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    mCard.innerHTML = `
+                        <span class="item-card-grade">${item.grade}</span>
+                        <div class="item-card-icon" style="filter: drop-shadow(0 0 8px ${g.color}aa);">
+                            ${getItemSvg(item.type, g.color)}
+                        </div>
+                        <div class="item-card-name">${item.name}</div>
+                    `;
+                    revealMultiContainer.appendChild(mCard);
+
+                    // Staggered reveal animation
+                    setTimeout(() => {
+                        mCard.style.opacity = '1';
+                        mCard.style.transform = 'scale(1)';
+                        // Play chime for Rare and above items
+                        if (gradeRanking[item.grade] >= 3) { // C and above
+                            playSound('reveal_rare');
+                        } else {
+                            playSound('reveal_normal');
+                        }
+                    }, index * 180);
+                });
+
+                summonMultiOverlay.classList.add('open');
+
+                // Play epic chord at the end if S/SS/SSS is drawn
+                setTimeout(() => {
+                    if (gradeRanking[highestPushedGrade] >= 6) { // S and above
+                        playSound('reveal_legendary');
+                    }
+                }, 1800);
+
+                btnSummon1.disabled = false;
+                btnSummon10.disabled = false;
+            }, 1800);
+        }
+
+        // Helper: Convert hex color to rgb string
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+        }
+
+        // 7. Event Listeners
+        portalSvg.addEventListener('click', triggerSingleSummon);
+        btnSummon1.addEventListener('click', triggerSingleSummon);
+        btnSummon10.addEventListener('click', triggerMultiSummon);
+
+        // Card flip handler in Single summon modal
+        revealCard.addEventListener('click', () => {
+            if (!revealCard.classList.contains('flipped')) {
+                revealCard.classList.add('flipped');
+                playSound('click');
+                // Wait for flip rotation before showing close button
+                setTimeout(() => {
+                    closeRevealBtn.style.display = 'block';
+                }, 600);
+            }
+        });
+
+        // Close Single Reveal Modal
+        closeRevealBtn.addEventListener('click', () => {
+            summonOverlay.classList.remove('open');
+            revealCard.classList.remove('flipped');
+            closeRevealBtn.style.display = 'none';
+            playSound('click');
+        });
+
+        // Close Multi Reveal Modal
+        closeMultiRevealBtn.addEventListener('click', () => {
+            summonMultiOverlay.classList.remove('open');
+            playSound('click');
+        });
+
+        // Clear Inventory Button
+        btnClearInventory.addEventListener('click', () => {
+            if (confirm('정말로 인벤토리와 누적 통계를 완전히 초기화하시겠습니까?')) {
+                inventory = {};
+                stats = {
+                    totalPulls: 0,
+                    highestGrade: '',
+                    counts: { E:0, D:0, C:0, B:0, A:0, S:0, SS:0, SSS:0 }
+                };
+                saveState();
+                playSound('click');
+            }
+        });
+
+        // Initialize UI on load
+        updateUI();
+    </script>
+</body>
+</html>
