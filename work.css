@@ -1,0 +1,892 @@
+/* ==========================================================================
+   AI WORK ASSISTANT STYLESHEET (work.css) - 3-Panel ChatGPT Layout
+   ========================================================================== */
+
+/* Layout & Container - 3 Panels */
+.work-container {
+    display: grid;
+    grid-template-columns: 20% 55% 25%;
+    gap: 1.5rem;
+    margin-top: 1.8rem;
+    align-items: stretch;
+    height: 720px; /* Fixed height for workspace dashboard */
+}
+
+@media (max-width: 1200px) {
+    .work-container {
+        grid-template-columns: 25% 75%;
+    }
+    .progress-status-panel {
+        display: none; /* Hide right panel on medium screens, can be accessed as summary card */
+    }
+}
+
+@media (max-width: 768px) {
+    .work-container {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 800px;
+    }
+    .chat-history-sidebar {
+        height: 180px;
+    }
+    .chat-workspace {
+        height: 540px;
+    }
+}
+
+/* Base Panel Styles */
+.chat-history-sidebar, .chat-workspace, .progress-status-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.chat-history-sidebar:hover, .chat-workspace:hover, .progress-status-panel:hover {
+    border-color: rgba(0, 242, 254, 0.12);
+}
+
+/* Panel Header Style */
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.panel-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.panel-icon {
+    font-size: 1.2rem;
+}
+
+/* --------------------------------------------------------------------------
+   PANEL 1: Sidebar (Chat History / Sessions)
+   -------------------------------------------------------------------------- */
+.chat-history-sidebar {
+    padding: 1.2rem;
+    gap: 1.2rem;
+}
+
+.new-chat-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: transparent;
+    border: 1px dashed rgba(0, 242, 254, 0.4);
+    border-radius: 10px;
+    color: #00f2fe;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.new-chat-btn:hover {
+    background: rgba(0, 242, 254, 0.05);
+    border-color: #00f2fe;
+    box-shadow: 0 0 12px rgba(0, 242, 254, 0.15);
+}
+
+.plus-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.ai-agents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.ai-agents-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ai-agents-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.agent-item {
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: var(--transition);
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+
+.agent-item:hover {
+    background: rgba(0, 242, 254, 0.05);
+    border-color: rgba(0, 242, 254, 0.2);
+    color: var(--text-primary);
+    transform: translateX(3px);
+}
+
+body.light-mode .agent-item {
+    background: rgba(15, 23, 42, 0.02);
+    border-color: rgba(15, 23, 42, 0.05);
+}
+
+body.light-mode .agent-item:hover {
+    background: rgba(0, 242, 254, 0.05);
+    color: #0f172a;
+}
+
+.agent-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: #0b0f19;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 242, 254, 0.2);
+    flex-shrink: 0;
+}
+
+.sidebar-section-title {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-top: 0.5rem;
+}
+
+.chat-sessions-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-right: 0.2rem;
+}
+
+.chat-sessions-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-sessions-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.no-sessions {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.session-item {
+    padding: 0.75rem 0.9rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    padding-right: 2.2rem; /* Make room for delete button */
+}
+
+.session-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    border-color: var(--card-border);
+}
+
+body.light-mode .session-item:hover {
+    background: rgba(15, 23, 42, 0.02);
+}
+
+.session-item.active {
+    background: rgba(0, 242, 254, 0.08);
+    border-color: rgba(0, 242, 254, 0.25);
+    color: #00f2fe;
+    font-weight: 600;
+}
+
+body.light-mode .session-item.active {
+    background: rgba(0, 242, 254, 0.05);
+}
+
+.delete-session-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: none;
+    transition: var(--transition);
+    line-height: 1;
+}
+
+.session-item:hover .delete-session-btn {
+    display: block;
+}
+
+.delete-session-btn:hover {
+    color: #ff0844;
+}
+
+/* --------------------------------------------------------------------------
+   PANEL 2: Chat Workspace
+   -------------------------------------------------------------------------- */
+.chat-workspace {
+    flex-grow: 1;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .chat-header {
+    background: rgba(15, 23, 42, 0.01);
+}
+
+.chat-header-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    overflow: hidden;
+}
+
+.chat-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.report-selection-dropdown-container {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.report-selection-dropdown-container .form-select {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background-size: 16px;
+    border-radius: 8px;
+}
+
+/* Chat Screen messages area */
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: 1.5rem;
+}
+
+.chat-bubble {
+    display: flex;
+    gap: 0.8rem;
+    max-width: 85%;
+    align-self: flex-start;
+    animation: bubbleFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.chat-bubble.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.bot-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: #0b0f19;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 242, 254, 0.2);
+}
+
+.chat-bubble.user .bot-avatar {
+    background: var(--secondary-gradient);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(255, 8, 68, 0.2);
+}
+
+.chat-bubble .message-content {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    padding: 0.8rem 1.1rem;
+    border-radius: 0 16px 16px 16px;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+}
+
+body.light-mode .chat-bubble .message-content {
+    background: rgba(15, 23, 42, 0.03);
+    color: #0f172a;
+}
+
+.chat-bubble.user .message-content {
+    background: rgba(0, 242, 254, 0.08);
+    border-color: rgba(0, 242, 254, 0.2);
+    border-radius: 16px 0 16px 16px;
+}
+
+/* Chat Finished Action Buttons Grid */
+.report-finish-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--card-border);
+    width: 100%;
+}
+
+.finish-action-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-primary);
+}
+
+.finish-action-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--text-secondary);
+    transform: translateY(-1px);
+}
+
+body.light-mode .finish-action-btn {
+    background: rgba(15, 23, 42, 0.02);
+    color: #0f172a;
+}
+
+body.light-mode .finish-action-btn:hover {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+.finish-action-btn.primary-btn {
+    background: var(--primary-gradient);
+    color: #0b0f19;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 242, 254, 0.25);
+}
+
+.finish-action-btn.primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 242, 254, 0.4);
+}
+
+.finish-action-btn.accent-btn {
+    background: var(--secondary-gradient);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(255, 8, 68, 0.25);
+}
+
+.finish-action-btn.accent-btn:hover {
+    box-shadow: 0 6px 16px rgba(255, 8, 68, 0.4);
+}
+
+/* Typing & Thinking Indicator */
+.typing-indicator {
+    display: none;
+    align-self: flex-start;
+    align-items: center;
+    gap: 4px;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.typing-indicator.active {
+    display: flex;
+}
+
+.typing-indicator .dot {
+    width: 6px;
+    height: 6px;
+    background: #00f2fe;
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+}
+
+/* Input Area Wrapper & helper chips */
+.chat-input-area-wrapper {
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--card-border);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.chat-input-helper-tips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.helper-chip {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    border-radius: 30px;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: var(--font-heading);
+}
+
+.helper-chip:hover {
+    background: rgba(0, 242, 254, 0.08);
+    border-color: #00f2fe;
+    color: #00f2fe;
+}
+
+body.light-mode .helper-chip {
+    background: rgba(15, 23, 42, 0.02);
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-end;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 0.5rem 0.8rem;
+    transition: var(--transition);
+}
+
+.chat-input-area:focus-within {
+    border-color: #00f2fe;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+#chatInput {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 0.4rem 0.2rem;
+    resize: none;
+    height: 38px;
+    max-height: 120px;
+    line-height: 1.5;
+}
+
+body.light-mode #chatInput {
+    color: #0f172a;
+}
+
+#chatInput:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--primary-gradient);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #0b0f19;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 242, 254, 0.35);
+}
+
+.send-btn:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.4;
+    color: #ffffff;
+}
+
+.send-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   PANEL 3: Progress & Status Checklist Panel
+   -------------------------------------------------------------------------- */
+.progress-status-panel {
+    padding: 0;
+}
+
+.progress-percentage-wrapper {
+    padding: 1.2rem 1.5rem 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.progress-val-text {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.progress-bar-container {
+    flex-grow: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+}
+
+body.light-mode .progress-bar-container {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 10px;
+    transition: width 0.4s ease-out;
+}
+
+.progress-ascii {
+    padding: 0 1.5rem 1rem 1.5rem;
+    font-family: 'Consolas', 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+/* Checklist items list */
+.checklist-card {
+    flex-grow: 1;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.2rem 1.5rem;
+    overflow: hidden;
+}
+
+.checklist-card h4 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 0.8rem;
+}
+
+.checklist-scroll-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.checklist-scroll-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.checklist-scroll-area::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+
+.checklist-items-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.checklist-placeholder-msg {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 3rem 0;
+    line-height: 1.6;
+}
+
+.checklist-item {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.checklist-item.checked {
+    color: var(--text-primary);
+}
+
+.check-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.checklist-item.checked .check-icon {
+    color: #10b981;
+}
+
+.checklist-item.pending .check-icon {
+    color: var(--text-muted);
+}
+
+.field-name-lbl {
+    font-weight: 600;
+}
+
+.field-preview-val {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    margin-left: auto;
+}
+
+.checklist-item.checked .field-preview-val {
+    color: #00f2fe;
+}
+
+/* --------------------------------------------------------------------------
+   LARGE OUTPUT MODAL & MARKDOWN VIEWER
+   -------------------------------------------------------------------------- */
+.modal-content.modal-large {
+    max-width: 720px;
+    width: 95%;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.modal-body-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 1rem 0;
+    max-height: 50vh;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+}
+
+.modal-textarea-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#modalTextarea {
+    width: 100%;
+    height: 320px;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    padding: 1.2rem;
+    resize: none;
+    outline: none;
+}
+
+body.light-mode #modalTextarea {
+    background: rgba(15, 23, 42, 0.02);
+    color: #0f172a;
+}
+
+/* Formatted report body html */
+.modal-markdown-body {
+    padding: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    height: 320px;
+    overflow-y: auto;
+}
+
+body.light-mode .modal-markdown-body {
+    color: #0f172a;
+}
+
+.modal-markdown-body h3 {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    color: #00f2fe;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 0.5rem;
+}
+
+.modal-markdown-body h4 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+
+body.light-mode .modal-markdown-body h4 {
+    color: #0f172a;
+}
+
+.modal-markdown-body p {
+    margin-bottom: 0.8rem;
+}
+
+.modal-markdown-body hr {
+    border: 0;
+    height: 1px;
+    background: var(--card-border);
+    margin: 1.2rem 0;
+}
+
+.modal-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   STATUS BAR & OTHER ELEMENTS
+   -------------------------------------------------------------------------- */
+.work-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1.5rem;
+    background: rgba(11, 15, 25, 0.85);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+body.light-mode .work-status-bar {
+    background: rgba(255, 255, 255, 0.85);
+    color: #475569;
+}
+
+.status-left, .status-right {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+}
+
+.status-indicator.active {
+    background-color: #10b981;
+    box-shadow: 0 0 6px #10b981;
+    animation: indicatorGlow 2s infinite alternate;
+}
+
+.status-indicator.warning {
+    background-color: #f5af19;
+    box-shadow: 0 0 6px #f5af19;
+}
+
+@keyframes indicatorGlow {
+    0% { opacity: 0.6; }
+    100% { opacity: 1; }
+}

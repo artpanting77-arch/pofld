@@ -1020,7 +1020,7 @@ footer {
         border-bottom: 0px solid var(--card-border);
     }
     nav.open {
-        height: 240px;
+        height: 280px;
         border-bottom: 1px solid var(--card-border);
     }
     nav ul {

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 업무보고 자동화 시스템 | 이수하 포트폴리오</title>
+    <meta name="description" content="AI 챗봇 인터랙션을 기반으로 보고서를 작성하는 대화형 업무 자동화 플랫폼입니다.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="work.css">
+</head>
+<body>
+    <!-- Admin Mode Banner -->
+    <div id="adminBanner" class="admin-banner">
+        <span>🔒 관리자 모드가 활성화되어 있습니다.</span>
+        <button id="adminBgPanelToggleBtn" class="admin-btn">배경 설정</button>
+        <button id="adminLogoutBtn">로그아웃</button>
+    </div>
+
+    <!-- Floating Admin Background Panel -->
+    <div id="adminBgPanel" class="admin-bg-panel">
+        <h4>🎨 배경화면 설정</h4>
+        
+        <div class="panel-section">
+            <h5>1. 이미지 업로드</h5>
+            <button id="adminBgUploadBtn" class="admin-btn" style="width: 100%; margin-bottom: 0.5rem;">이미지 선택</button>
+            <input type="file" id="adminBgInput" accept="image/*" style="display: none;">
+        </div>
+        
+        <div class="panel-section">
+            <h5>2. 단색 설정 (RGB)</h5>
+            <div class="rgb-control">
+                <label>R: <span id="rVal">11</span></label>
+                <input type="range" id="rRange" min="0" max="255" value="11">
+            </div>
+            <div class="rgb-control">
+                <label>G: <span id="gVal">15</span></label>
+                <input type="range" id="gRange" min="0" max="255" value="15">
+            </div>
+            <div class="rgb-control">
+                <label>B: <span id="bVal">25</span></label>
+                <input type="range" id="bRange" min="0" max="255" value="25">
+            </div>
+            <div class="color-preview-row">
+                <input type="color" id="colorPicker" value="#0b0f19">
+                <span style="font-size:0.8rem; color:var(--text-secondary);">색상 선택기</span>
+            </div>
+        </div>
+        
+        <button id="adminBgResetBtn" class="admin-btn reset-btn" style="width: 100%; margin-top: 1rem; display: none;">설정 초기화</button>
+    </div>
+
+    <!-- Header/Nav -->
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                SUHA LEE <span class="logo-dot"></span>
+            </a>
+            <button class="menu-toggle" id="menuToggle" aria-label="메뉴 열기">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="mainNav">
+                <ul>
+                    <li><a href="index.html">홈</a></li>
+                    <li><a href="profile.html">간단 인적사항</a></li>
+                    <li><a href="activities.html">활동사항</a></li>
+                    <li><a href="certifications.html">자격사항</a></li>
+                    <li><a href="gacha.html">가챠 시뮬레이터</a></li>
+                    <li><a href="work.html" class="active">📁 업무</a></li>
+                </ul>
+            </nav>
+            <div class="nav-controls">
+                <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="테마 변경">
+                    <svg class="sun-icon" viewBox="0 0 24 24">
+                        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41zm-12.37 12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41z"/>
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24">
+                        <path d="M12.3 22c5.07 0 9.2-3.79 9.7-8.68.13-1.27-1.12-2.19-2.22-1.57C17.7 12.98 15.42 13 14 13c-5.52 0-10-4.48-10-10 0-1.42.02-3.7.75-5.78.62-1.1-.3-2.35-1.57-2.22C3.79 3.8 2 7.93 2 13c0 5.52 4.48 10 10 10z"/>
+                    </svg>
+                </button>
+                <button id="adminLoginBtn" class="admin-login-btn" aria-label="관리자 로그인">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="section-title-area fade-in-up">
+            <span class="section-subtitle">Chat-based Reporting Platform</span>
+            <h2 class="section-title">AI 업무보고 자동화 시스템</h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                AI 챗봇과 대화하며 질답을 통해 기업 보고서를 손쉽게 작성하고 관리해 보세요.
+            </p>
+        </div>
+
+        <!-- 3-PANEL SYSTEM WRAPPER -->
+        <div class="work-container fade-in-up delay-1">
+            
+            <!-- PANEL 1: LEFT SIDE - 대화 목록 (20%) -->
+            <aside class="chat-history-sidebar">
+                <div class="sidebar-section-title" style="margin-top:0;">🤖 AI AGENTS</div>
+                <div class="ai-agents-list" id="aiAgentsList">
+                    <!-- Loaded dynamically from JSON keys -->
+                </div>
+                
+                <div class="sidebar-section-title">💬 최근 대화 목록</div>
+                <div class="chat-sessions-list" id="chatSessionsList">
+                    <!-- Dynamic session list generated by JS -->
+                    <div class="no-sessions">저장된 세션이 없습니다.</div>
+                </div>
+            </aside>
+
+            <!-- PANEL 2: CENTER - 채팅창 (55%) -->
+            <section class="chat-workspace">
+                <!-- Session/Chat Area Header -->
+                <div class="chat-header">
+                    <div class="chat-header-title-row">
+                        <span class="chat-icon">💬</span>
+                        <h3 id="currentSessionTitle">대화를 시작하려면 좌측의 AI Agent를 선택해 주세요</h3>
+                    </div>
+                    <!-- Report type select inside chat header when starting new session (hidden by default) -->
+                    <div class="report-selection-dropdown-container" id="reportSelectHeaderContainer" style="display: none;">
+                        <select id="reportTypeSelect" class="form-select">
+                            <option value="" disabled selected>-- 보고서 종류 선택 --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Chat Bubbles Screen -->
+                <div id="chatMessages" class="chat-messages">
+                    <div class="chat-bubble bot welcome-bubble">
+                        <div class="bot-avatar">🤖</div>
+                        <div class="message-content">
+                            안녕하세요! **AI 업무보고 자동화 시스템**에 오신 것을 환영합니다.<br><br>
+                            상단 메뉴에서 작성하고자 하는 보고서 종류를 선택해 주세요. AI가 질문을 순서대로 하나씩 드리며 문서를 완성해 나갑니다.<br><br>
+                            * 💡 **대화 팁:** 모르는 내용은 **'모르겠습니다'**, **'건너뛰기'**, 혹은 **'없음'**을 입력하시면 비워두고 다음 단계로 넘어갑니다.<br>
+                            * ↩️ **이전 질문으로:** **'이전'**이라고 대답하시면 이전 문항으로 복귀합니다.<br>
+                            * ✏️ **수정하기:** 대화 도중 언제든 **'수정'**을 입력하여 기존에 입력한 값을 고칠 수 있습니다.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thinking Indicator -->
+                <div id="typingIndicator" class="typing-indicator">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">AI가 생각 중...</span>
+                </div>
+
+                <!-- Input area -->
+                <div class="chat-input-area-wrapper">
+                    <!-- Context tips -->
+                    <div class="chat-input-helper-tips" id="chatInputHelperTips">
+                        <button class="helper-chip" data-cmd="건너뛰기">건너뛰기</button>
+                        <button class="helper-chip" data-cmd="이전">이전 질문으로</button>
+                        <button class="helper-chip" data-cmd="수정">입력값 수정</button>
+                    </div>
+                    <div class="chat-input-area">
+                        <textarea id="chatInput" placeholder="답변을 입력하세요... (Enter 전송 / Shift+Enter 줄바꿈)" disabled></textarea>
+                        <button id="sendChatBtn" class="send-btn" aria-label="메시지 전송" disabled>
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANEL 3: RIGHT SIDE - 실시간 보고서 진행 현황 및 상태 표시 패널 (25%) -->
+            <aside class="progress-status-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">📊</span>
+                    <h3>작성 진행률</h3>
+                </div>
+                
+                <!-- Progress status values -->
+                <div class="progress-percentage-wrapper">
+                    <span class="progress-val-text" id="progressValText">0%</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <!-- Console percentage layout e.g. ■■■■□□□□□□ 4 / 10 -->
+                <div class="progress-ascii" id="progressAscii">
+                    □□□□□□□□□□ 0 / 0
+                </div>
+
+                <!-- Checklist Cards -->
+                <div class="checklist-card">
+                    <h4 id="checklistTitle">보고서 요약 카드</h4>
+                    <div class="checklist-scroll-area">
+                        <ul class="checklist-items-list" id="checklistItemsList">
+                            <!-- Items auto-populated by JS -->
+                            <li class="checklist-placeholder-msg">보고서를 선택하면 진행 현황이 활성화됩니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- STATUS BAR -->
+        <footer class="work-status-bar">
+            <div class="status-left">
+                <span class="status-indicator active" id="statusIndicator"></span>
+                <span id="statusMessage">대기 중... 보고서 종류를 선택하세요.</span>
+            </div>
+            <div class="status-right">
+                <span id="autoSaveTime">자동 저장 비활성화</span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p class="footer-copy">© 2026 이수하. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="profile.html">인적사항</a>
+                <a href="activities.html">활동사항</a>
+                <a href="certifications.html">자격사항</a>
+                <a href="work.html">업무</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- DYNAMIC POPUP MODAL (For displaying [보고서 보기], [프롬프트 보기] contents) -->
+    <div id="outputModal" class="modal-overlay">
+        <div class="modal-content modal-large">
+            <button class="modal-close" id="closeOutputModal" aria-label="닫기">&times;</button>
+            <div class="modal-header">
+                <div class="modal-icon" id="outputModalIcon">
+                    📄
+                </div>
+                <h3 id="outputModalTitle">보고서 결과</h3>
+                <p id="outputModalSubtitle">생성된 비즈니스 텍스트 결과물입니다.</p>
+            </div>
+            
+            <div class="modal-body-content">
+                <!-- Generated result markup will go here -->
+                <div class="modal-textarea-wrapper">
+                    <div class="modal-markdown-body" id="modalMarkdownBody" style="display: none;"></div>
+                    <textarea id="modalTextarea" readonly></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer-actions">
+                <button id="modalActionBtn" class="btn btn-primary">
+                    <svg class="btn-icon" viewBox="0 0 24 24" style="width:16px; height:16px; fill:currentColor;">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                    <span>텍스트 복사</span>
+                </button>
+                <button id="modalCloseBtn" class="btn btn-secondary">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal" aria-label="닫기">&times;</button>
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                    </svg>
+                </div>
+                <h3>관리자 로그인</h3>
+                <p>관리자 모드 활성화를 위해 비밀번호를 입력해주세요.</p>
+            </div>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminPassword">비밀번호</label>
+                    <input type="password" id="adminPassword" placeholder="비밀번호를 입력하세요 (데모: admin123)" required>
+                </div>
+                <div id="loginError" class="login-error-msg">비밀번호가 올바르지 않습니다.</div>
+                <button type="submit" class="btn btn-primary w-100">로그인</button>
+            </form>
+            <div id="loginSuccess" class="login-success-msg">
+                <div class="success-icon">✓</div>
+                <h4>로그인 성공!</h4>
+                <p>관리자 세션이 활성화되었습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="script.js"></script>
+    <!-- Page Specific Script -->
+    <script src="work.js"></script>
+</body>
+</html>

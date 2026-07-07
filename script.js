@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter out admin controls and gacha components
         return textElements.filter(el => {
-            if (el.closest('.gacha-container') || el.closest('#adminModal') || el.closest('#adminBanner') || el.closest('.admin-bg-panel') || el.closest('.modal-content') || el.closest('.summon-overlay') || el.closest('.summon-multi-overlay')) {
+            if (el.closest('.gacha-container') || el.closest('.work-container') || el.closest('#adminModal') || el.closest('#adminBanner') || el.closest('.admin-bg-panel') || el.closest('.modal-content') || el.closest('.summon-overlay') || el.closest('.summon-multi-overlay')) {
                 return false;
             }
             // Skip empty elements or SVGs

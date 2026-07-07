@@ -1,0 +1,68 @@
+{
+  "업무보고 Agent": [
+    { "id": "date", "question": "보고일은 언제인가요? (예: 2026-07-07)", "type": "date" },
+    { "id": "writer", "question": "작성자는 누구인가요?", "type": "text", "memoryKey": "writer" },
+    { "id": "position", "question": "직급은 무엇인가요? (예: 사원, 대리, 과장)", "type": "text", "memoryKey": "position" },
+    { "id": "department", "question": "소속 부서는 어디인가요?", "type": "text", "memoryKey": "department" },
+    { "id": "company", "question": "회사명은 무엇인가요?", "type": "text", "memoryKey": "company" },
+    { "id": "todayWork", "question": "오늘 수행한 업무를 구체적으로 입력해주세요.", "type": "textarea" },
+    { "id": "progress", "question": "오늘 업무의 진행률(%)은 어느 정도인가요? (숫자만 입력)", "type": "text" },
+    { "id": "tomorrowPlan", "question": "내일 예정된 업무 계획은 어떻게 되시나요?", "type": "textarea" },
+    { "id": "issue", "question": "업무 중 발생한 이슈나 특이사항이 있나요? (없으면 '없음')", "type": "textarea" }
+  ],
+  "프로젝트 진행보고 Agent": [
+    { "id": "projectName", "question": "프로젝트명을 입력해 주세요.", "type": "text" },
+    { "id": "manager", "question": "프로젝트 담당자(PM)는 누구인가요?", "type": "text", "memoryKey": "writer" },
+    { "id": "department", "question": "담당 부서는 어디인가요?", "type": "text", "memoryKey": "department" },
+    { "id": "company", "question": "회사명은 무엇인가요?", "type": "text", "memoryKey": "company" },
+    { "id": "phase", "question": "현재 진행 단계를 입력해 주세요. (예: 기획, 디자인, 개발, 테스트, 배포)", "type": "text" },
+    { "id": "progress", "question": "전체 프로젝트 진행률(%)은 얼마인가요? (숫자만 입력)", "type": "text" },
+    { "id": "milestones", "question": "이번 기간에 달성한 주요 마일스톤(이정표)은 무엇인가요?", "type": "textarea" },
+    { "id": "issues", "question": "현재 직면한 주요 리스크나 이슈는 무엇인가요? (없으면 '없음')", "type": "textarea" },
+    { "id": "actionPlan", "question": "리스크를 해결하기 위한 향후 대처 계획은 무엇인가요?", "type": "textarea" }
+  ],
+  "회의록 Agent": [
+    { "id": "title", "question": "회의 주제는 무엇인가요?", "type": "text" },
+    { "id": "date", "question": "회의가 진행된 일자는 언제인가요? (예: 2026-07-07)", "type": "date" },
+    { "id": "attendees", "question": "회의 참석자 명단을 알려주세요. (쉼표로 구분)", "type": "text" },
+    { "id": "writer", "question": "회의록을 정리하는 작성자는 누구인가요?", "type": "text", "memoryKey": "writer" },
+    { "id": "department", "question": "회의 주관 부서는 어디인가요?", "type": "text", "memoryKey": "department" },
+    { "id": "company", "question": "회사명은 무엇인가요?", "type": "text", "memoryKey": "company" },
+    { "id": "agenda", "question": "회의의 주요 안건은 무엇이었나요?", "type": "textarea" },
+    { "id": "decisions", "question": "회의를 통해 결정된 주요 결정 사항은 무엇인가요?", "type": "textarea" },
+    { "id": "actions", "question": "향후 진행할 후속 조치(Action Item)와 담당자를 적어주세요.", "type": "textarea" }
+  ],
+  "결과보고 Agent": [
+    { "id": "name", "question": "프로젝트 또는 행사명을 적어주세요.", "type": "text" },
+    { "id": "period", "question": "수행 기간은 어떻게 되나요? (예: 2026.06.01 ~ 2026.06.30)", "type": "text" },
+    { "id": "writer", "question": "결과 보고자는 누구인가요?", "type": "text", "memoryKey": "writer" },
+    { "id": "department", "question": "소속 부서는 어디인가요?", "type": "text", "memoryKey": "department" },
+    { "id": "company", "question": "회사명은 무엇인가요?", "type": "text", "memoryKey": "company" },
+    { "id": "goals", "question": "당초 목표했던 주요 지표나 최종 목표는 무엇이었나요?", "type": "textarea" },
+    { "id": "outcomes", "question": "실제 달성한 주요 성과는 무엇인가요?", "type": "textarea" },
+    { "id": "pros", "question": "이번 프로젝트에서 잘된 점(성공 요인)은 무엇인가요?", "type": "textarea" },
+    { "id": "cons", "question": "아쉬운 점이나 직면했던 한계는 무엇이었나요?", "type": "textarea" },
+    { "id": "improvements", "question": "차기 프로젝트나 업무에 반영할 개선 대책은 무엇인가요?", "type": "textarea" }
+  ],
+  "문제(이슈) 보고 Agent": [
+    { "id": "title", "question": "발생한 문제 또는 이슈 제목은 무엇인가요?", "type": "text" },
+    { "id": "occurrenceDate", "question": "이슈가 발생한 구체적인 일시를 적어주세요. (예: 2026-07-07 10:30)", "type": "text" },
+    { "id": "writer", "question": "장애 보고 담당자는 누구인가요?", "type": "text", "memoryKey": "writer" },
+    { "id": "department", "question": "담당 기술 부서는 어디인가요?", "type": "text", "memoryKey": "department" },
+    { "id": "company", "question": "회사명은 무엇인가요?", "type": "text", "memoryKey": "company" },
+    { "id": "impact", "question": "이슈 현상과 시스템/서비스에 미친 영향 범위는 어디까지인가요?", "type": "textarea" },
+    { "id": "cause", "question": "분석된 장애/문제의 원인은 무엇인가요?", "type": "textarea" },
+    { "id": "actions", "question": "취해진 긴급 조치 내역과 향후 재발 방지 대책은 무엇인가요?", "type": "textarea" }
+  ],
+  "제안서 Agent": [
+    { "id": "title", "question": "제안하고자 하는 과제명은 무엇인가요?", "type": "text" },
+    { "id": "proposer", "question": "제안자(또는 부서)는 누구인가요?", "type": "text", "memoryKey": "writer" },
+    { "id": "department", "question": "제안 부서는 어디인가요?", "type": "text", "memoryKey": "department" },
+    { "id": "company", "question": "회사명은 무엇인가요?", "type": "text", "memoryKey": "company" },
+    { "id": "background", "question": "제안의 배경 및 필요성을 적어주세요.", "type": "textarea" },
+    { "id": "content", "question": "제안의 핵심 내용 및 구체적 실행 방안을 요약해 주세요.", "type": "textarea" },
+    { "id": "effect", "question": "제안 도입 시 예상되는 기대 효과는 무엇인가요?", "type": "textarea" },
+    { "id": "budget", "question": "예상되는 소요 예산과 투입 인력 리소스는 어느 정도인가요?", "type": "textarea" },
+    { "id": "timeline", "question": "대략적인 추진 일정 계획은 어떻게 되나요?", "type": "textarea" }
+  ]
+}
